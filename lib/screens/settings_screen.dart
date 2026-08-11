@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:sweetylust/providers/providers.dart';
 import 'package:sweetylust/screens/addresses_screen.dart';
 import 'package:sweetylust/screens/ble_devices_screen.dart';
 import 'package:sweetylust/screens/login_screen.dart';
@@ -7,14 +9,34 @@ import 'package:sweetylust/screens/orders_screen.dart';
 import 'package:sweetylust/screens/personal_info_screen.dart';
 import 'package:sweetylust/widgets/action_item.dart';
 
-class SettingsScreen extends StatefulWidget {
+class SettingsScreen extends ConsumerStatefulWidget {
   const SettingsScreen({super.key});
 
   @override
-  State<SettingsScreen> createState() => _SettingsScreenState();
+  ConsumerState<SettingsScreen> createState() => _SettingsScreenState();
 }
 
-class _SettingsScreenState extends State<SettingsScreen> {
+class _SettingsScreenState extends ConsumerState<SettingsScreen> {
+  bool _isLoggingOut = false;
+
+  Future<void> _handleLogout() async {
+    if (_isLoggingOut) return;
+
+    setState(() {
+      _isLoggingOut = true;
+    });
+
+    await ref.read(authProvider.notifier).logout();
+
+    if (!mounted) return;
+
+    Navigator.pushAndRemoveUntil(
+      context,
+      MaterialPageRoute(builder: (context) => const LoginScreen()),
+      (route) => false,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -116,24 +138,28 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     ),
                     padding: const EdgeInsets.symmetric(horizontal: 24.0),
                   ),
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => LoginScreen()),
-                    );
-                  },
+                  onPressed: _isLoggingOut ? null : _handleLogout,
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        'CERRAR SESIÓN',
+                        _isLoggingOut ? 'CERRANDO...' : 'CERRAR SESIÓN',
                         style: GoogleFonts.alumniSans(
                           fontSize: 18,
                           fontWeight: FontWeight.w500,
                           letterSpacing: 1.5,
                         ),
                       ),
-                      Icon(Icons.logout_outlined, size: 24),
+                      _isLoggingOut
+                          ? const SizedBox(
+                              width: 24,
+                              height: 24,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: Colors.black,
+                              ),
+                            )
+                          : const Icon(Icons.logout_outlined, size: 24),
                     ],
                   ),
                 ),

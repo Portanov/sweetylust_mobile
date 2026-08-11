@@ -7,7 +7,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:sweetylust/providers/admin_shell_provider.dart';
+import 'package:sweetylust/providers/providers.dart';
 import 'package:sweetylust/providers/websocket_provider.dart';
+import 'package:sweetylust/screens/login_screen.dart';
 import 'package:sweetylust/services/websocket_service.dart' as ws_service;
 
 class QRScanScreen extends ConsumerStatefulWidget {
@@ -21,6 +23,7 @@ class _QRScanScreenState extends ConsumerState<QRScanScreen> {
   bool _isScanning = true;
   bool _isCheckingPermission = true;
   bool _hasCameraPermission = false;
+  bool _isLoggingOut = false;
   String? _errorMessage;
   String? _permissionMessage;
   final MobileScannerController _scannerController = MobileScannerController(
@@ -42,14 +45,32 @@ class _QRScanScreenState extends ConsumerState<QRScanScreen> {
     super.dispose();
   }
 
+  Future<void> _handleLogout() async {
+    if (_isLoggingOut) return;
+
+    setState(() {
+      _isLoggingOut = true;
+    });
+
+    ref.read(webSocketServiceProvider).disconnect();
+    ref.read(adminTabIndexProvider.notifier).state = 0;
+    await ref.read(authProvider.notifier).logout();
+
+    if (!mounted) return;
+
+    Navigator.pushAndRemoveUntil(
+      context,
+      MaterialPageRoute(builder: (context) => const LoginScreen()),
+      (route) => false,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final wsService = ref.watch(webSocketServiceProvider);
     final isConnected = ref.watch(wsIsConnectedProvider);
     final roomId = ref.watch(wsRoomIdProvider);
     final mobileStatus = ref.watch(wsMobileStatusProvider);
-    final connectionStatus = ref.watch(wsConnectionStatusProvider);
-
     ref.listen(wsIsConnectedProvider, (previous, next) {
       if (next == true) {
         setState(() {
@@ -65,21 +86,21 @@ class _QRScanScreenState extends ConsumerState<QRScanScreen> {
         backgroundColor: Colors.black,
         elevation: 0,
         actions: [
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12),
-            child: Row(
-              children: [
-                Container(
-                  width: 10,
-                  height: 10,
-                  decoration: BoxDecoration(
-                    color: isConnected ? Colors.green : Colors.red,
-                    shape: BoxShape.circle,
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Text(connectionStatus, style: const TextStyle(fontSize: 12)),
-              ],
+          TextButton.icon(
+            onPressed: _isLoggingOut ? null : _handleLogout,
+            icon: _isLoggingOut
+                ? const SizedBox(
+                    width: 16,
+                    height: 16,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: Colors.white,
+                    ),
+                  )
+                : const Icon(Icons.logout, color: Colors.white, size: 18),
+            label: Text(
+              _isLoggingOut ? 'Saliendo...' : 'Salir',
+              style: const TextStyle(color: Colors.white),
             ),
           ),
         ],

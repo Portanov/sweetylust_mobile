@@ -13,7 +13,11 @@ class AdminHomeScreen extends ConsumerStatefulWidget {
 }
 
 class _AdminHomeScreenState extends ConsumerState<AdminHomeScreen> {
-  final List<Widget> _screens = const [QRScanScreen(), PackingScreen(), MonitorScreen()];
+  final List<Widget> _screens = const [
+    QRScanScreen(),
+    PackingScreen(),
+    MonitorScreen(),
+  ];
 
   @override
   Widget build(BuildContext context) {

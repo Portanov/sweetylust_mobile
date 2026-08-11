@@ -6,7 +6,9 @@ import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:sweetylust/models/websocket_model.dart';
 import 'package:sweetylust/providers/admin_shell_provider.dart';
+import 'package:sweetylust/providers/providers.dart';
 import 'package:sweetylust/providers/websocket_provider.dart';
+import 'package:sweetylust/screens/login_screen.dart';
 import 'package:sweetylust/services/websocket_service.dart' as ws_service;
 
 class PackingScreen extends ConsumerStatefulWidget {
@@ -23,6 +25,7 @@ class _PackingScreenState extends ConsumerState<PackingScreen>
   bool _isCheckingPermission = true;
   bool _hasCameraPermission = false;
   bool _isFinishing = false;
+  bool _isLoggingOut = false;
   bool _isScannerRunning = false;
   String? _errorMessage;
   String? _lastScannedOrder;
@@ -51,6 +54,26 @@ class _PackingScreenState extends ConsumerState<PackingScreen>
     super.dispose();
   }
 
+  Future<void> _handleLogout() async {
+    if (_isLoggingOut) return;
+
+    setState(() {
+      _isLoggingOut = true;
+    });
+
+    ref.read(webSocketServiceProvider).disconnect();
+    ref.read(adminTabIndexProvider.notifier).state = 0;
+    await ref.read(authProvider.notifier).logout();
+
+    if (!mounted) return;
+
+    Navigator.pushAndRemoveUntil(
+      context,
+      MaterialPageRoute(builder: (context) => const LoginScreen()),
+      (route) => false,
+    );
+  }
+
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     final isPackingTabActive = ref.read(adminTabIndexProvider) == 1;
@@ -76,13 +99,10 @@ class _PackingScreenState extends ConsumerState<PackingScreen>
     });
 
     final wsService = ref.watch(webSocketServiceProvider);
-    final isConnected = ref.watch(wsIsConnectedProvider);
     final roomId = ref.watch(wsRoomIdProvider);
     final mobileStatus = ref.watch(wsMobileStatusProvider);
     final products = ref.watch(wsProductsProvider);
     final currentOrder = ref.watch(wsCurrentOrderProvider);
-    final connectionStatus = ref.watch(wsConnectionStatusProvider);
-
     ref.listen(wsProductsProvider, (previous, next) {
       if (next.isNotEmpty) {
         setState(() {
@@ -133,21 +153,21 @@ class _PackingScreenState extends ConsumerState<PackingScreen>
           },
         ),
         actions: [
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12),
-            child: Row(
-              children: [
-                Container(
-                  width: 10,
-                  height: 10,
-                  decoration: BoxDecoration(
-                    color: isConnected ? Colors.green : Colors.red,
-                    shape: BoxShape.circle,
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Text(connectionStatus, style: const TextStyle(fontSize: 12)),
-              ],
+          TextButton.icon(
+            onPressed: _isLoggingOut ? null : _handleLogout,
+            icon: _isLoggingOut
+                ? const SizedBox(
+                    width: 16,
+                    height: 16,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: Colors.white,
+                    ),
+                  )
+                : const Icon(Icons.logout, color: Colors.white, size: 18),
+            label: Text(
+              _isLoggingOut ? 'Saliendo...' : 'Salir',
+              style: const TextStyle(color: Colors.white),
             ),
           ),
         ],
