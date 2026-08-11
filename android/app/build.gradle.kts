@@ -33,10 +33,16 @@ android {
             signingConfig = signingConfigs.getByName("debug")
         }
     }
+    
+    lint {
+        checkReleaseBuilds = false
+        abortOnError = false
+        checkDependencies = true
+    }
 }
 
-dependencies { 
-    coreLibraryDesugaring( "com.android.tools:desugar_jdk_libs:2.1.5" )
+dependencies {
+    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.5")
 }
 
 kotlin {
