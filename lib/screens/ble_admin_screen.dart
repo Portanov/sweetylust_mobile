@@ -275,12 +275,13 @@ class _MonitorScreenState extends State<MonitorScreen> {
                   ? result.advertisementData.advName
                   : 'Wearable BLE');
 
-        return Container(
-          decoration: BoxDecoration(
-            color: const Color(0xFF16213E),
+        return Material(
+          color: const Color(0xFF16213E),
+          shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: Colors.white12),
+            side: const BorderSide(color: Colors.white12),
           ),
+          clipBehavior: Clip.antiAlias,
           child: ListTile(
             leading: const Icon(
               Icons.watch_outlined,

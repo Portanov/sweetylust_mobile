@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
-import 'dart:typed_data';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
@@ -126,7 +125,7 @@ class BleClient {
     try {
       await FlutterBluePlus.startScan(
         timeout: const Duration(seconds: 15),
-        withServices: [Guid(BleConstants.serviceUUID)],
+        withServices: [],
       );
 
       await FlutterBluePlus.isScanning.where((value) => value == false).first;
@@ -174,19 +173,25 @@ class BleClient {
       await device.connect(
         license: License.nonprofit,
         autoConnect: false,
-        mtu: 23,
+        mtu: null,
         timeout: const Duration(seconds: 20),
       );
 
       _connected = true;
-      unawaited(_discoverAndSubscribe());
     } catch (e) {
       _connected = false;
       try {
         await device.disconnect();
       } catch (_) {}
+      throw Exception('No se pudo abrir la conexión GATT: $e');
+    }
+
+    try {
+      await _discoverAndSubscribe();
+    } catch (e) {
+      await disconnect();
       throw Exception(
-        'No se pudo conectar al wearable. Verifica que esté encendido, desbloqueado y no conectado a otra app.',
+        'El wearable se conectó, pero no se pudo leer su servicio de métricas: $e',
       );
     }
   }
@@ -201,6 +206,12 @@ class BleClient {
     _subs.clear();
 
     final services = await device.discoverServices();
+    if (services.isEmpty) {
+      throw Exception(
+        'El dispositivo no expuso servicios GATT (0 descubiertos)',
+      );
+    }
+
     var serviceFound = false;
 
     for (final svc in services) {
@@ -241,7 +252,12 @@ class BleClient {
     }
 
     if (!serviceFound) {
-      throw Exception('El dispositivo no expone el servicio esperado');
+      final discoveredUuids = services
+          .map((service) => service.uuid)
+          .join(', ');
+      throw Exception(
+        'El dispositivo no expone el servicio esperado. Servicios detectados: $discoveredUuids',
+      );
     }
 
     _dataCtrl.add(_current.copyWith(timestamp: DateTime.now()));
