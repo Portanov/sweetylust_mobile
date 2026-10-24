@@ -1,0 +1,20 @@
+appId: com.example.sweetylust
+---
+- launchApp:
+    clearState: true
+- tapOn:
+    text: "INICIAR SESIÓN"
+- assertVisible:
+    text: "El correo es requerido"
+- tapOn:
+    text: "Correo electrónico"
+- inputText: "correo-invalido"
+- tapOn:
+    text: "Contraseña"
+- inputText: "123"
+- tapOn:
+    text: "INICIAR SESIÓN"
+- assertVisible:
+    text: "Ingresa un correo válido"
+- assertVisible:
+    text: "La contraseña debe tener al menos 6 caracteres"

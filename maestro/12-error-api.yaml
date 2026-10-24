@@ -1,0 +1,16 @@
+appId: com.example.sweetylust
+---
+- launchApp:
+    clearState: true
+- tapOn:
+    text: "Correo electrónico"
+- inputText: "${TEST_ERROR_EMAIL}"
+- tapOn:
+    text: "Contraseña"
+- inputText: "${TEST_USER_PASSWORD}"
+- tapOn:
+    text: "INICIAR SESIÓN"
+- assertVisible:
+    text: "Error"
+- assertNotVisible:
+    text: "Carrito"

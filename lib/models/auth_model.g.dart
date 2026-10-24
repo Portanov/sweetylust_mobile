@@ -58,7 +58,6 @@ Map<String, dynamic> _$LoginFirstStepRequestToJson(
 LoginFirstStepResponse _$LoginFirstStepResponseFromJson(
   Map<String, dynamic> json,
 ) => LoginFirstStepResponse(
-  tempToken: json['tempToken'] as String,
   message: json['message'] as String,
   requires2fa: json['requires2fa'] as bool,
 );
@@ -66,7 +65,6 @@ LoginFirstStepResponse _$LoginFirstStepResponseFromJson(
 Map<String, dynamic> _$LoginFirstStepResponseToJson(
   LoginFirstStepResponse instance,
 ) => <String, dynamic>{
-  'tempToken': instance.tempToken,
   'message': instance.message,
   'requires2fa': instance.requires2fa,
 };
@@ -75,27 +73,18 @@ VerifyPinRequest _$VerifyPinRequestFromJson(Map<String, dynamic> json) =>
     VerifyPinRequest(
       email: json['email'] as String,
       pin: json['pin'] as String,
-      tempToken: json['tempToken'] as String,
     );
 
 Map<String, dynamic> _$VerifyPinRequestToJson(VerifyPinRequest instance) =>
-    <String, dynamic>{
-      'email': instance.email,
-      'pin': instance.pin,
-      'tempToken': instance.tempToken,
-    };
+    <String, dynamic>{'email': instance.email, 'pin': instance.pin};
 
 VerifyPinResponse _$VerifyPinResponseFromJson(Map<String, dynamic> json) =>
     VerifyPinResponse(
-      accessToken: json['accessToken'] as String,
       user: User.fromJson(json['user'] as Map<String, dynamic>),
     );
 
 Map<String, dynamic> _$VerifyPinResponseToJson(VerifyPinResponse instance) =>
-    <String, dynamic>{
-      'accessToken': instance.accessToken,
-      'user': instance.user,
-    };
+    <String, dynamic>{'user': instance.user};
 
 JwtPayload _$JwtPayloadFromJson(Map<String, dynamic> json) => JwtPayload(
   sub: (json['sub'] as num).toInt(),

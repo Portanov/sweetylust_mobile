@@ -1,7 +1,7 @@
 
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'http_transport.dart';
 
 
 class ApiException implements Exception {
@@ -20,19 +20,15 @@ class ApiException implements Exception {
 }
 
 class HttpClient extends http.BaseClient {
-  final FlutterSecureStorage _secureStorage;
-  final String _tokenKey;
   final Duration _timeout;
   final bool _enableLogging;
   final http.Client _client;
+  final Map<String, String> _cookies = {};
 
   HttpClient({
-    FlutterSecureStorage? secureStorage,
-    this._tokenKey = 'jwt_token',
     this._timeout = const Duration(seconds: 30),
     this._enableLogging = true,
-  }) : _secureStorage = secureStorage ?? const FlutterSecureStorage(),
-       _client = http.Client();
+  }) : _client = createHttpClient();
 
   @override
   Future<http.StreamedResponse> send(http.BaseRequest request) async {
@@ -46,9 +42,17 @@ class HttpClient extends http.BaseClient {
         'Accept': 'application/json',
       });
 
+      /*
       final token = await _getToken();
       if (token != null && token.isNotEmpty) {
         request.headers['Authorization'] = 'Bearer $token';
+      }
+
+      */
+      if (_cookies.isNotEmpty) {
+        request.headers['Cookie'] = _cookies.entries
+            .map((entry) => '${entry.key}=${entry.value}')
+            .join('; ');
       }
 
       if (_enableLogging) {
@@ -71,6 +75,7 @@ class HttpClient extends http.BaseClient {
         _logResponse(streamedResponse);
       }
 
+      _storeCookies(streamedResponse.headers['set-cookie']);
       return streamedResponse;
     } catch (e) {
       if (_enableLogging) {
@@ -85,6 +90,7 @@ class HttpClient extends http.BaseClient {
     _client.close();
   }
 
+  /*
   Future<String?> _getToken() async {
     try {
       final token = await _secureStorage.read(key: _tokenKey);
@@ -146,6 +152,34 @@ class HttpClient extends http.BaseClient {
 
   Future<String?> getToken() async {
     return await _getToken();
+  }
+  */
+
+  void clearCookies() {
+    _cookies.clear();
+  }
+
+  void _storeCookies(String? setCookieHeader) {
+    if (setCookieHeader == null || setCookieHeader.isEmpty) {
+      return;
+    }
+
+    final cookieParts = setCookieHeader.split(RegExp(r',(?=\s*[^;, ]+=)'));
+    for (final cookiePart in cookieParts) {
+      final pair = cookiePart.trim().split(';').first;
+      final separator = pair.indexOf('=');
+      if (separator <= 0) {
+        continue;
+      }
+
+      final name = pair.substring(0, separator).trim();
+      final value = pair.substring(separator + 1).trim();
+      if (value.isEmpty || cookiePart.toLowerCase().contains('max-age=0')) {
+        _cookies.remove(name);
+      } else {
+        _cookies[name] = value;
+      }
+    }
   }
 
   String _truncate(String value, int maxLength) {

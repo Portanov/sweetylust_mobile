@@ -106,17 +106,12 @@ class LoginFirstStepRequest {
 
 @JsonSerializable()
 class LoginFirstStepResponse {
-  final String tempToken;
   final String message;
   final bool requires2fa;
 
-  LoginFirstStepResponse({
-    required this.tempToken,
-    required this.message,
-    required this.requires2fa,
-  });
+  LoginFirstStepResponse({required this.message, required this.requires2fa});
 
-  bool get needsOtp => requires2fa || tempToken.isNotEmpty;
+  bool get needsOtp => requires2fa;
 
   factory LoginFirstStepResponse.fromJson(Map<String, dynamic> json) {
     final rawRequires2fa = json['requires2fa'];
@@ -130,18 +125,9 @@ class LoginFirstStepResponse {
       requires2fa = rawRequires2fa != 0;
     }
 
-    final tempToken = readString(
-      json,
-      'tempToken',
-      fallback: readString(
-        json,
-        'temp_token',
-        fallback: readString(json, 'token', fallback: ''),
-      ),
-    );
     final message = readString(json, 'message').toLowerCase();
 
-    if (!requires2fa && tempToken.isEmpty) {
+    if (!requires2fa) {
       requires2fa =
           message.contains('codigo') ||
           message.contains('otp') ||
@@ -150,14 +136,12 @@ class LoginFirstStepResponse {
     }
 
     return LoginFirstStepResponse(
-      tempToken: tempToken,
       message: readString(json, 'message'),
       requires2fa: requires2fa,
     );
   }
 
   Map<String, dynamic> toJson() => <String, dynamic>{
-    'tempToken': tempToken,
     'message': message,
     'requires2fa': requires2fa,
   };
@@ -167,55 +151,30 @@ class LoginFirstStepResponse {
 class VerifyPinRequest {
   final String email;
   final String pin;
-  final String tempToken;
 
-  VerifyPinRequest({
-    required this.email,
-    required this.pin,
-    required this.tempToken,
-  });
+  VerifyPinRequest({required this.email, required this.pin});
 
   factory VerifyPinRequest.fromJson(Map<String, dynamic> json) {
     return VerifyPinRequest(
       email: readString(json, 'email'),
       pin: readString(json, 'pin'),
-      tempToken: readString(
-        json,
-        'tempToken',
-        fallback: readString(
-          json,
-          'temp_token',
-          fallback: readString(json, 'token', fallback: ''),
-        ),
-      ),
     );
   }
 
   Map<String, dynamic> toJson() => <String, dynamic>{
     'email': email,
     'pin': pin,
-    'temp_token': tempToken,
   };
 }
 
 @JsonSerializable()
 class VerifyPinResponse {
-  final String accessToken;
   final User user;
 
-  VerifyPinResponse({required this.accessToken, required this.user});
+  VerifyPinResponse({required this.user});
 
   factory VerifyPinResponse.fromJson(Map<String, dynamic> json) {
     return VerifyPinResponse(
-      accessToken: readString(
-        json,
-        'accessToken',
-        fallback: readString(
-          json,
-          'access_token',
-          fallback: readString(json, 'token', fallback: ''),
-        ),
-      ),
       user: User.fromJson(
         (json['user'] is Map<String, dynamic>)
             ? json['user'] as Map<String, dynamic>
@@ -224,10 +183,7 @@ class VerifyPinResponse {
     );
   }
 
-  Map<String, dynamic> toJson() => <String, dynamic>{
-    'accessToken': accessToken,
-    'user': user,
-  };
+  Map<String, dynamic> toJson() => <String, dynamic>{'user': user};
 }
 
 @JsonSerializable()

@@ -1,0 +1,17 @@
+appId: com.example.sweetylust
+---
+- launchApp:
+    clearState: false
+- assertVisible:
+    text: "Buscar productos..."
+- tapOn:
+    text: "Buscar productos..."
+- inputText: "${TEST_PRODUCT_SEARCH}"
+- tapOn:
+    text: "Agregar al carrito"
+- assertVisible:
+    text: "Producto agregado al carrito correctamente"
+- tapOn:
+    text: "Carrito"
+- assertVisible:
+    text: "Carrito"

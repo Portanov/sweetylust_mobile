@@ -1,0 +1,38 @@
+appId: com.example.sweetylust
+---
+- launchApp:
+    clearState: false
+- tapOn:
+    text: "Perfil"
+- tapOn:
+    text: "Direcciones"
+- tapOn:
+    text: "AGREGAR NUEVA DIRECCIÓN"
+- tapOn:
+    text: "Nombre del destinatario"
+- inputText: "${TEST_ADDRESS_NAME}"
+- tapOn:
+    text: "Teléfono"
+- inputText: "${TEST_ADDRESS_PHONE}"
+- tapOn:
+    text: "Calle"
+- inputText: "${TEST_ADDRESS_STREET}"
+- tapOn:
+    text: "Número exterior"
+- inputText: "${TEST_ADDRESS_EXT_NUMBER}"
+- tapOn:
+    text: "Colonia"
+- inputText: "${TEST_ADDRESS_NEIGHBORHOOD}"
+- tapOn:
+    text: "Ciudad"
+- inputText: "${TEST_ADDRESS_CITY}"
+- tapOn:
+    text: "Estado"
+- inputText: "${TEST_ADDRESS_STATE}"
+- tapOn:
+    text: "Código Postal"
+- inputText: "${TEST_ADDRESS_POSTAL_CODE}"
+- tapOn:
+    text: "GUARDAR DIRECCIÓN"
+- assertVisible:
+    text: "Dirección creada correctamente"

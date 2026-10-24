@@ -1,0 +1,40 @@
+appId: com.example.sweetylust
+---
+- launchApp:
+    clearState: false
+- tapOn:
+    text: "Perfil"
+- tapOn:
+    text: "Direcciones"
+- tapOn:
+    text: "AGREGAR NUEVA DIRECCIÓN"
+- tapOn:
+    text: "Nombre del destinatario"
+- inputText: "Dirección inválida"
+- tapOn:
+    text: "Teléfono"
+- inputText: "123"
+- tapOn:
+    text: "Calle"
+- inputText: "Calle Principal"
+- tapOn:
+    text: "Número exterior"
+- inputText: "123"
+- tapOn:
+    text: "Colonia"
+- inputText: "Centro"
+- tapOn:
+    text: "Ciudad"
+- inputText: "Ciudad"
+- tapOn:
+    text: "Estado"
+- inputText: "Estado"
+- tapOn:
+    text: "Código Postal"
+- inputText: "12"
+- tapOn:
+    text: "GUARDAR DIRECCIÓN"
+- assertVisible:
+    text: "Deben ser 10 dígitos"
+- assertVisible:
+    text: "Deben ser 5 dígitos"
