@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sweetylust/screens/app_admin_shell.dart';
-import 'package:toastification/toastification.dart';
 
 import 'app_shell.dart';
 import '../providers/providers.dart';
