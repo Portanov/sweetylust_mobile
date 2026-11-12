@@ -347,8 +347,9 @@ class _BleDevicesScreenState extends ConsumerState<BleDevicesScreen> {
                   else
                     ...scanResults.map((result) {
                       final device = result.device;
-                      if (device.platformName.isEmpty)
+                      if (device.platformName.isEmpty) {
                         return const SizedBox.shrink();
+                      }
                       return _buildDeviceCard(
                         device.platformName,
                         'Toca para vincular',
