@@ -1,0 +1,18 @@
+appId: com.example.sweetylust
+---
+- launchApp:
+    clearState: true
+- assertVisible:
+    text: "Inicia sesión para continuar"
+- assertNotVisible:
+    text: "Mis Pedidos"
+- assertNotVisible:
+    text: "Carrito"
+- tapOn:
+    text: "Regístrate"
+- assertVisible:
+    text: "Crear Cuenta"
+- pressKey:
+    key: BACK
+- assertVisible:
+    text: "Inicia sesión para continuar"

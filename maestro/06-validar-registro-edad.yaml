@@ -1,0 +1,28 @@
+appId: com.example.sweetylust
+---
+- launchApp:
+    clearState: true
+- tapOn:
+    text: "Regístrate"
+- assertVisible:
+    text: "Crear Cuenta"
+- tapOn:
+    text: "Nombre de usuario"
+- inputText: "usuario_menor"
+- tapOn:
+    text: "Correo electrónico"
+- inputText: "menor@example.com"
+- tapOn:
+    text: "Contraseña"
+- inputText: "Password123"
+- tapOn:
+    text: "Teléfono"
+- inputText: "5512345678"
+- tapOn:
+    text: "Fecha de nacimiento"
+- tapOn:
+    text: "CONFIRMAR"
+- tapOn:
+    text: "REGISTRAR"
+- assertVisible:
+    text: "Debes ser mayor de 18 años para registrarte."

@@ -1,0 +1,22 @@
+appId: com.example.sweetylust
+---
+- launchApp:
+    clearState: false
+- tapOn:
+    text: "Perfil"
+- tapOn:
+    text: "Pedidos"
+- assertVisible:
+    text: "Mis Pedidos"
+- tapOn:
+    text: "Pedido #${TEST_ORDER_NUMBER}"
+- assertVisible:
+    text: "Cancelar pedido"
+- tapOn:
+    text: "Cancelar pedido"
+- assertVisible:
+    text: "¿Estás seguro de que quieres cancelar este pedido?"
+- tapOn:
+    text: "Cancelar pedido"
+- assertVisible:
+    text: "El pedido ha sido cancelado correctamente"

@@ -2,9 +2,9 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:sweetylust/services/ble_service.dart';
 import '../models/auth_model.dart';
 import '../services/auth_service.dart';
+import '../services/http_client.dart';
 import 'service_providers.dart';
 import 'http_provider.dart';
 
@@ -14,7 +14,6 @@ class AuthState {
   final bool isLoading;
   final String? error;
   final bool isAuthenticated;
-  final String? tempToken;
   final String? userEmail;
 
   AuthState({
@@ -23,7 +22,6 @@ class AuthState {
     this.isLoading = false,
     this.error,
     this.isAuthenticated = false,
-    this.tempToken,
     this.userEmail,
   });
 
@@ -33,7 +31,6 @@ class AuthState {
     bool? isLoading,
     String? error,
     bool? isAuthenticated,
-    String? tempToken,
     String? userEmail,
   }) {
     return AuthState(
@@ -42,7 +39,6 @@ class AuthState {
       isLoading: isLoading ?? this.isLoading,
       error: error ?? this.error,
       isAuthenticated: isAuthenticated ?? this.isAuthenticated,
-      tempToken: tempToken ?? this.tempToken,
       userEmail: userEmail ?? this.userEmail,
     );
   }
@@ -66,89 +62,34 @@ class AuthNotifier extends StateNotifier<AuthState> {
   }
 
   Future<bool> initializeSession() async {
-    final httpClient = _ref.read(httpClientProvider);
-    final token = await httpClient.getToken();
-
-    if (token == null || token.isEmpty) {
-      await _clearSession(preserveToken: false);
-      return false;
-    }
-
-    if (isJwtExpired(token)) {
-      try {
-        final bleService = BLEService();
-        await bleService.disconnectDevice();
-      } catch (e) {
-        debugPrint('Error desconectando BLE: $e');
-      }
-      await _clearSession(preserveToken: false);
-      return false;
-    }
-
-    final payload = parseJwtPayload(token);
-    if (payload == null) {
-      await _clearSession(preserveToken: false);
-      return false;
-    }
-
-    _setAuthenticatedSession(
-      token: token,
-      user: User(
-        id: payload.sub,
-        username: payload.username,
-        email: payload.email,
-        role: payload.role,
-      ),
-      payload: payload,
-    );
-
-    await _initializeNotificationsAfterSession();
-
-    return true;
+    // Cookies are intentionally kept out of persistent storage, so a new
+    // process must authenticate again.
+    return false;
   }
 
-  void _setAuthenticatedSession({
-    required String token,
-    required User user,
-    required JwtPayload payload,
-  }) {
+  void _setAuthenticatedSession({required User user}) {
     _sessionExpiryTimer?.cancel();
-
-    final expiresAt = DateTime.fromMillisecondsSinceEpoch(payload.exp * 1000);
-    final remaining = expiresAt.difference(DateTime.now());
-
-    if (remaining.isNegative || remaining == Duration.zero) {
-      _expireSession();
-      return;
-    }
-
-    _sessionExpiryTimer = Timer(remaining, _expireSession);
 
     state = state.copyWith(
       isLoading: false,
       user: user,
-      token: token,
       isAuthenticated: true,
-      tempToken: null,
       userEmail: null,
       error: null,
     );
   }
 
-  Future<void> _clearSession({required bool preserveToken}) async {
+  Future<void> _clearSession() async {
     _sessionExpiryTimer?.cancel();
     _sessionExpiryTimer = null;
 
-    if (!preserveToken) {
-      final httpClient = _ref.read(httpClientProvider);
-      await httpClient.deleteToken();
-    }
+    _ref.read(httpClientProvider).clearCookies();
 
     state = AuthState.initial();
   }
 
   Future<void> _expireSession() async {
-    await _clearSession(preserveToken: false);
+    await _clearSession();
   }
 
   Future<bool> register(RegisterRequest request) async {
@@ -169,24 +110,35 @@ class AuthNotifier extends StateNotifier<AuthState> {
 
     try {
       final request = LoginFirstStepRequest(email: email, password: password);
-      final response = await _authService.loginFirstStep(request);
+      await _authService.loginFirstStep(request);
 
-      state = state.copyWith(
-        isLoading: false,
-        tempToken: response.tempToken,
-        userEmail: email,
-        error: null,
-      );
+      state = state.copyWith(isLoading: false, userEmail: email, error: null);
 
       return true;
     } catch (e) {
       state = state.copyWith(
         isLoading: false,
-        error: e.toString(),
-        tempToken: null,
+        userEmail: null,
+        error: _authenticationErrorMessage(e),
       );
       return false;
     }
+  }
+
+  String _authenticationErrorMessage(Object error) {
+    if (error is ApiException) {
+      if (error.statusCode == 401 || error.statusCode == 403) {
+        return 'El correo o la contraseña son incorrectos';
+      }
+
+      if (error.statusCode == 0) {
+        return error.message;
+      }
+
+      return error.message;
+    }
+
+    return 'No se pudo iniciar sesión. Intenta nuevamente';
   }
 
   Future<void> _initializeNotificationsAfterSession() async {
@@ -199,7 +151,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
     }
   }
 
-   Future<void> _initializeNotificationsAfterLogin() async {
+  Future<void> _initializeNotificationsAfterLogin() async {
     try {
       final notificationService = _ref.read(notificationServiceProvider);
       await notificationService.initialize();
@@ -211,9 +163,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
 
   Future<bool> verifyPin(String pin) async {
     final email = state.userEmail;
-    final tempToken = state.tempToken;
-
-    if (email == null || tempToken == null) {
+    if (email == null) {
       state = state.copyWith(error: 'Información de sesión no encontrada');
       return false;
     }
@@ -221,38 +171,11 @@ class AuthNotifier extends StateNotifier<AuthState> {
     state = state.copyWith(isLoading: true, error: null);
 
     try {
-      final request = VerifyPinRequest(
-        email: email,
-        pin: pin,
-        tempToken: tempToken,
-      );
+      final request = VerifyPinRequest(email: email, pin: pin);
 
       final response = await _authService.verifyPin(request);
 
-      final accessToken = response.accessToken;
-      if (accessToken.isEmpty) {
-        throw Exception('El token recibido está vacío');
-      }
-
-      final payload = parseJwtPayload(accessToken);
-      if (payload == null || isJwtExpired(accessToken)) {
-        throw Exception('El token recibido no es válido o ya expiró');
-      }
-
-      final httpClient = _ref.read(httpClientProvider);
-      await httpClient.saveToken(accessToken);
-
-      final hasToken = await httpClient.hasToken();
-
-      if (!hasToken) {
-        throw Exception('El token no se guardó correctamente');
-      }
-
-      _setAuthenticatedSession(
-        token: accessToken,
-        user: response.user,
-        payload: payload,
-      );
+      _setAuthenticatedSession(user: response.user);
 
       await _initializeNotificationsAfterLogin();
 
@@ -277,11 +200,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
       final request = LoginFirstStepRequest(email: email, password: password);
       final response = await _authService.loginFirstStep(request);
 
-      state = state.copyWith(
-        isLoading: false,
-        tempToken: response.tempToken,
-        error: null,
-      );
+      state = state.copyWith(isLoading: false, error: null);
 
       return true;
     } catch (e) {
@@ -291,11 +210,17 @@ class AuthNotifier extends StateNotifier<AuthState> {
   }
 
   Future<void> logout() async {
-    await _clearSession(preserveToken: false);
+    await _clearSession();
   }
 
   void clearError() {
-    state = state.copyWith(error: null);
+    state = AuthState(
+      user: state.user,
+      token: state.token,
+      isLoading: state.isLoading,
+      isAuthenticated: state.isAuthenticated,
+      userEmail: state.userEmail,
+    );
   }
 }
 

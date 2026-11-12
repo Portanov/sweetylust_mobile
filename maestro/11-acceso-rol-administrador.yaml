@@ -1,0 +1,23 @@
+appId: com.example.sweetylust
+---
+- launchApp:
+    clearState: true
+- tapOn:
+    text: "Correo electrónico"
+- inputText: "${TEST_ADMIN_EMAIL}"
+- tapOn:
+    text: "Contraseña"
+- inputText: "${TEST_ADMIN_PASSWORD}"
+- tapOn:
+    text: "INICIAR SESIÓN"
+- assertVisible:
+    text: "Código de verificación"
+- tapOn:
+    text: "Código"
+- inputText: "${TEST_ADMIN_OTP}"
+- tapOn:
+    text: "VERIFICAR"
+- assertVisible:
+    text: "Empaquetado"
+- assertNotVisible:
+    text: "MI PERFIL"

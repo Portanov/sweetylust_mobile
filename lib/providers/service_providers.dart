@@ -5,6 +5,7 @@ import '../services/auth_service.dart';
 import '../services/cart_service.dart';
 import '../services/order_service.dart';
 import '../services/product_service.dart';
+import '../services/report_service.dart';
 import '../services/user_service.dart';
 import '../services/websocket_service.dart';
 import 'http_provider.dart';
@@ -49,4 +50,10 @@ final notificationServiceProvider = Provider<NotificationService>((ref) {
   final httpClient = ref.watch(httpClientProvider);
   final apiUrl = ref.watch(apiUrlProvider);
   return NotificationService(httpClient: httpClient, apiUrl: apiUrl);
+});
+
+final reportServiceProvider = Provider<ReportService>((ref) {
+  final httpClient = ref.watch(httpClientProvider);
+  final apiUrl = ref.watch(apiUrlProvider);
+  return ReportService(httpClient: httpClient, apiUrl: apiUrl);
 });
