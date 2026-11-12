@@ -4,10 +4,10 @@ appId: com.example.sweetylust
     clearState: true
 
 - tapOn:
-    text: "Correo electrónico"
+    hintText: "Correo electrónico"
 - inputText: "${TEST_USER_EMAIL}"
 - tapOn:
-    text: "Contraseña"
+    hintText: "Contraseña"
 - inputText: "${TEST_USER_PASSWORD}"
 - tapOn:
     text: "INICIAR SESIÓN"

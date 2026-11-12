@@ -91,7 +91,6 @@ Widget buildBottomButton(
   );
 }
 
-
 Widget buildInputLabel(String text) {
   return Padding(
     padding: const EdgeInsets.only(bottom: 8.0),
@@ -120,6 +119,7 @@ Widget buildTextField({
   String? errorText,
   String? Function(String?)? validator,
   int? maxLines = 1,
+  int? maxLength,
 }) {
   return TextFormField(
     controller: controller,
@@ -129,6 +129,7 @@ Widget buildTextField({
     keyboardType: keyboardType,
     validator: validator,
     maxLines: maxLines,
+    maxLength: maxLength,
     style: const TextStyle(fontWeight: FontWeight.w300),
     decoration: InputDecoration(
       hintText: hint,

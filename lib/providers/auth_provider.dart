@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/auth_model.dart';
 import '../services/auth_service.dart';
+import '../services/http_client.dart';
 import 'service_providers.dart';
 import 'http_provider.dart';
 
@@ -109,15 +110,35 @@ class AuthNotifier extends StateNotifier<AuthState> {
 
     try {
       final request = LoginFirstStepRequest(email: email, password: password);
-      final response = await _authService.loginFirstStep(request);
+      await _authService.loginFirstStep(request);
 
       state = state.copyWith(isLoading: false, userEmail: email, error: null);
 
       return true;
     } catch (e) {
-      state = state.copyWith(isLoading: false, error: e.toString());
+      state = state.copyWith(
+        isLoading: false,
+        userEmail: null,
+        error: _authenticationErrorMessage(e),
+      );
       return false;
     }
+  }
+
+  String _authenticationErrorMessage(Object error) {
+    if (error is ApiException) {
+      if (error.statusCode == 401 || error.statusCode == 403) {
+        return 'El correo o la contraseña son incorrectos';
+      }
+
+      if (error.statusCode == 0) {
+        return error.message;
+      }
+
+      return error.message;
+    }
+
+    return 'No se pudo iniciar sesión. Intenta nuevamente';
   }
 
   Future<void> _initializeNotificationsAfterSession() async {
@@ -193,7 +214,13 @@ class AuthNotifier extends StateNotifier<AuthState> {
   }
 
   void clearError() {
-    state = state.copyWith(error: null);
+    state = AuthState(
+      user: state.user,
+      token: state.token,
+      isLoading: state.isLoading,
+      isAuthenticated: state.isAuthenticated,
+      userEmail: state.userEmail,
+    );
   }
 }
 

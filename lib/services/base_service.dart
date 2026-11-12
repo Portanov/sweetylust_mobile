@@ -145,6 +145,9 @@ abstract class BaseService {
       }
       try {
         final data = jsonDecode(response.body);
+        if (data is T) {
+          return data;
+        }
         if (data is Map<String, dynamic>) {
           return fromJson(data);
         }

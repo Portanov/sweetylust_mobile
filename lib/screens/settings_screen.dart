@@ -7,6 +7,7 @@ import 'package:sweetylust/screens/ble_devices_screen.dart';
 import 'package:sweetylust/screens/login_screen.dart';
 import 'package:sweetylust/screens/orders_screen.dart';
 import 'package:sweetylust/screens/personal_info_screen.dart';
+import 'package:sweetylust/screens/support_screen.dart';
 import 'package:sweetylust/widgets/action_item.dart';
 
 class SettingsScreen extends ConsumerStatefulWidget {
@@ -119,6 +120,17 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(builder: (context) => OrdersScreen()),
+                  );
+                },
+              ),
+              ActionItem(
+                title: 'Soporte',
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const SupportScreen(),
+                    ),
                   );
                 },
               ),

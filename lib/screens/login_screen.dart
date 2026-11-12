@@ -18,6 +18,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _obscurePassword = true;
+  String? _submissionError;
 
   @override
   void dispose() {
@@ -30,10 +31,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   Widget build(BuildContext context) {
     final authState = ref.watch(authProvider);
     final isLoading = authState.isLoading;
-    final error = authState.error;
 
     ref.listen(authProvider, (previous, next) {
       if (next.error != null && next.error!.isNotEmpty) {
+        if (mounted) {
+          setState(() => _submissionError = next.error);
+        }
+
         toastification.show(
           context: context,
           style: ToastificationStyle.fillColored,
@@ -228,6 +232,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
   Future<void> _handleLogin() async {
     if (!_formKey.currentState!.validate()) return;
+
+    setState(() => _submissionError = null);
 
     final email = _emailController.text.trim();
     final password = _passwordController.text;

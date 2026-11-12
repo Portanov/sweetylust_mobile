@@ -4,13 +4,17 @@ appId: com.example.sweetylust
     clearState: true
 - tapOn:
     text: "Correo electrónico"
-- inputText: "${TEST_ERROR_EMAIL}"
+- inputText: "${TEST_INVALID_EMAIL}"
 - tapOn:
     text: "Contraseña"
-- inputText: "${TEST_USER_PASSWORD}"
+- inputText: "${TEST_INVALID_PASSWORD}"
 - tapOn:
     text: "INICIAR SESIÓN"
 - assertVisible:
-    text: "Error"
+    id: "login-error-message"
 - assertNotVisible:
     text: "Carrito"
+- tapOn:
+    text: "INICIAR SESIÓN"
+- assertVisible:
+    id: "login-error-message"
