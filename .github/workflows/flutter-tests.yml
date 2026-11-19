@@ -17,6 +17,16 @@ jobs:
           channel: stable
           cache: true
 
+      - name: Create CI environment file
+        env:
+          API_URL: ${{ secrets.API_URL }}
+        run: |
+          if [ -z "$API_URL" ]; then
+            echo "::error::Falta el Repository secret API_URL."
+            exit 1
+          fi
+          printf 'API_URL=%s\n' "$API_URL" > .env
+
       - name: Install dependencies
         run: flutter pub get
 
